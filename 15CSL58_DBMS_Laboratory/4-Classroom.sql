@@ -74,12 +74,38 @@ create view stud_test1 as
 	from student s, iamarks ia
 	where s.usn = ia.usn and s.usn = '1mv16cs001';
 
-update iamarks
-	set finalia = ((test1+test2+test3)-(case
-		when test1<test2 and Test2<test3 then test1
-		when test2<test3 and test2<test1 then test2
-		else test3
-		end))/2;
+-- update iamarks
+-- 	set finalia = ((test1+test2+test3)-(case
+-- 		when test1<test2 and Test2<test3 then test1
+-- 		when test2<test3 and test2<test1 then test2
+-- 		else test3
+-- 		end))/2;
+
+
+declare 
+cursor c_iamarks
+is
+select test1,test2,test3 from ia_marks
+where ia_marks is null for update;
+c_t1 number;
+c_t2 number;
+c_t3 number;
+c_sum number;
+c_avg number;
+begin
+open c_iamarks
+loop 
+fetch c_iamarks into c_t1,c_t2,c_t3 
+exit when c_iamarks%notfound;
+c_sum=c_t1+c_t2+c_t3;
+dbms_output.put_line('sum'||c_sum);
+c_avg=c_sum/3;
+dbms_output.put_line('avg'||c_avg);
+update is_marks ste final_ia=c_avg
+where current of c_iamarks;
+end loop;
+close c_iamarks;
+end; 
 
 select s.usn, s.sname, ia.finalia, (case 
 when finalia between 17 and 20 then 'Outstanding'
